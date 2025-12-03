@@ -3,8 +3,8 @@ import ipaddress
 
 import ncs
 from ncs.application import NanoService
-from resource_manager.id_allocator import id_request, id_read
-from resource_manager.ipaddress_allocator import net_request, net_request_static, net_read
+from resource_manager.service import Allocator
+
 
 class CreateRfs(NanoService):
     @NanoService.create
@@ -14,57 +14,19 @@ class CreateRfs(NanoService):
         if not (service.left_router < service.right_router):
             raise ValueError("Left side router must precede right side router in alphabetical ascending order. Please swap left and right side.")
 
-        SERVICE_XPATH = f"/netinfra/backbone-link[left-router='{service.left_router}'][left-interface='{service.left_interface}'][right-router='{service.right_router}'][right-interface='{service.right_interface}']"
         ALLOCATION_NAME = f"{service.left_router} [{service.left_interface}] <-> {service.right_router} [{service.right_interface}]"
 
-        if service.custom.ipv4_prefix:
-            net_request_static(service=service,
-                    svc_xpath=SERVICE_XPATH,
-                    username=tctx.username,
-                    pool_name='ipv4-backbone-link',
-                    allocation_name=ALLOCATION_NAME,
-                    subnet_start_ip=service.custom.ipv4_prefix.split('/')[0],
-                    cidrmask=service.custom.ipv4_prefix.split('/')[1],
-                    sync_alloc=True,
-                    root=root)
-        else:
-            net_request(service=service,
-                        svc_xpath=SERVICE_XPATH,
-                        username=tctx.username,
-                        pool_name='ipv4-backbone-link',
-                        allocation_name=ALLOCATION_NAME,
-                        cidrmask=31,
-                        sync_alloc=True,
-                        root=root)
-
-        service.vars.ipv4_prefix = net_read(username=tctx.username,
-                                            root=root,
-                                            pool_name='ipv4-backbone-link',
-                                            allocation_name = ALLOCATION_NAME)
-        if service.custom.ipv6_prefix:
-            net_request_static(service=service,
-                    svc_xpath=SERVICE_XPATH,
-                    username=tctx.username,
-                    pool_name='ipv6-backbone-link',
-                    allocation_name=ALLOCATION_NAME,
-                    subnet_start_ip=service.custom.ipv6_prefix.split('/')[0],
-                    cidrmask=service.custom.ipv6_prefix.split('/')[1],
-                    sync_alloc=True,
-                    root=root)
-        else:
-            net_request(service=service,
-                        svc_xpath=SERVICE_XPATH,
-                        username=tctx.username,
-                        pool_name='ipv6-backbone-link',
-                        allocation_name=ALLOCATION_NAME,
-                        cidrmask=126,
-                        sync_alloc=True,
-                        root=root)
-
-        service.vars.ipv6_prefix = net_read(username=tctx.username,
-                                            root=root,
-                                            pool_name='ipv6-backbone-link',
-                                            allocation_name = ALLOCATION_NAME)
+        allocator = Allocator(service)
+        service.vars.ipv4_prefix = (allocator
+                                    .ip(service.custom.ipv4_prefix)
+                                    .pool('ipv4-backbone-link')
+                                    .prefix_length(31)
+                                    .allocate(ALLOCATION_NAME))
+        service.vars.ipv6_prefix = (allocator
+                                    .ip(service.custom.ipv6_prefix)
+                                    .pool('ipv6-backbone-link')
+                                    .prefix_length(126)
+                                    .allocate(ALLOCATION_NAME))
         self.log.info('Allocated IPv4 prefix:', service.vars.ipv4_prefix)
         self.log.info('Allocated IPv6 prefix:', service.vars.ipv6_prefix)
 

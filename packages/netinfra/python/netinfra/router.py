@@ -2,14 +2,13 @@
 import ncs
 from ncs.application import Service
 from ncs.dp import Action
+from resource_manager.service import Allocator
 
-from resource_manager.id_allocator import id_request, id_read
-from resource_manager.ipaddress_allocator import net_request, net_request_static, net_read
 
 import ipaddress
 import traceback
 
-SERVICE_XPATH = "/netinfra/router[name='{name}']"
+
 class ServiceCallbacks(Service):
     """CFS router service
 
@@ -19,46 +18,17 @@ class ServiceCallbacks(Service):
     def cb_create(self, tctx, root, service, proplist):
         self.log.info('Service create(service=', service._path, ')')
 
-        id_request(service=service,
-                svc_xpath=SERVICE_XPATH.format(name=service.name),
-                username=tctx.username,
-                pool_name='router-id',
-                allocation_name=service.name,
-                sync_pool=False,
-                requested_id=service.custom.id if service.custom.id else -1,
-                sync_alloc=True,
-                root=root)
-
-        id = id_read(username=tctx.username,
-                     root=root,
-                     pool_name='router-id',
-                     allocation_name=service.name)
+        allocator = Allocator(service)
+        id = allocator.id(service.custom.id).pool('router-id').allocate(service.name)
         self.log.debug('Allocated ID: ', id)
 
-        if service.custom.ipv4_address:
-            net_request_static(service=service,
-                    svc_xpath=SERVICE_XPATH.format(name=service.name),
-                    username=tctx.username,
-                    pool_name='ipv4-loopback',
-                    allocation_name=service.name,
-                    subnet_start_ip=service.custom.ipv4_address,
-                    cidrmask=32,
-                    sync_alloc=True,
-                    root=root)
-        else:
-            net_request(service=service,
-                        svc_xpath=SERVICE_XPATH.format(name=service.name),
-                        username=tctx.username,
-                        pool_name='ipv4-loopback',
-                        allocation_name=service.name,
-                        cidrmask=32,
-                        sync_alloc=True,
-                        root=root)
-
-        ipv4_loopback = net_read(username=tctx.username,
-                                 root=root,
-                                 pool_name='ipv4-loopback',
-                                 allocation_name = service.name).split('/')[0]
+        custom_ipv4 = f'{service.custom.ipv4_address}/32' if service.custom.ipv4_address else None
+        ipv4_loopback = (allocator
+                         .ip(custom_ipv4)
+                         .pool('ipv4-loopback')
+                         .prefix_length(32)
+                         .allocate(service.name)
+                         .split('/')[0])
 
         ipv6_loopback = f'2001:db8::{id}'
         self.log.debug('IPv4 loopback: ', ipv4_loopback)
