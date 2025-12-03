@@ -2,7 +2,7 @@
   <name>netinfra</name>
   <package-version>1.0</package-version>
   <description>Network Infrastructure CFS</description>
-  <ncs-min-version>6.2</ncs-min-version>
+  <ncs-min-version>6.6</ncs-min-version>
 
   <required-package>
     <name>resource-manager</name>

@@ -2,7 +2,7 @@
   <name>multi-service-action</name>
   <package-version>1.0</package-version>
   <description>Package containing reusable action to invoke multiple service actions in one call.</description>
-  <ncs-min-version>6.3</ncs-min-version>
+  <ncs-min-version>6.6</ncs-min-version>
 
   <required-package>
     <name>maagic-copy</name>

@@ -5,12 +5,12 @@
 # the brownfield config.
 tutorial-sd-1-start:
 	$(MAKE) configure configure-resource-pools
-	$(MAKE) netsim-load-xml-conf NETSIM=CR-1 FILE=device-configs-brownfield/CR-1.xml
-	$(MAKE) netsim-load-xml-conf NETSIM=CR-2 FILE=device-configs-brownfield/CR-2.xml
-	$(MAKE) netsim-load-xml-conf NETSIM=CR-3 FILE=device-configs-brownfield/CR-3.xml
-	$(MAKE) netsim-load-xml-conf NETSIM=ER-1 FILE=device-configs-brownfield/ER-1.xml
-	$(MAKE) netsim-load-xml-conf NETSIM=ER-2 FILE=device-configs-brownfield/ER-2.xml
-	$(MAKE) netsim-load-xml-conf NETSIM=ER-3 FILE=device-configs-brownfield/ER-3.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=CR-1 FILE=device-configs-brownfield/CR-1.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=CR-2 FILE=device-configs-brownfield/CR-2.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=CR-3 FILE=device-configs-brownfield/CR-3.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=ER-1 FILE=device-configs-brownfield/ER-1.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=ER-2 FILE=device-configs-brownfield/ER-2.xml
+	$(MAKE) netsim-load-override-xml-conf NETSIM=ER-3 FILE=device-configs-brownfield/ER-3.xml
 
 # Load up config for our brownfield network
 tutorial-sd-2-onboard-devices:
@@ -48,7 +48,7 @@ tutorial-sd-6-find-services-cr-1:
 # Now delete the configuration on the device in NSO. This is local ("commit
 # no-networking") and won't affect the actual device.
 tutorial-sd-7-delete-cr-1-device-config:
-	@$(MAKE) runcmdJ CMD="request devices device CR-1 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device CR-1 delete-config force"
 
 # re-deploy the /nodes/router service for CR-1 to re-create the device config
 # based on NSO's service intent. Do this with no-networking as not to touch the
@@ -94,7 +94,7 @@ tutorial-sd-12-conf-diff-check-cr-2:
 	@$(MAKE) runcmdJ CMD="request devices device CR-2 sync-from"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/original-CR-2.xml"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 find-services"
-	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/new-CR-2.xml"
 	diff -u config/original-CR-2.xml config/new-CR-2.xml || true
@@ -130,7 +130,7 @@ tutorial-sd-14-conf-diff-check-cr-2:
 	@$(MAKE) runcmdJ CMD="request devices device CR-2 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/original-CR-2.xml"
-	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/new-CR-2.xml"
 	diff -u config/original-CR-2.xml config/new-CR-2.xml || true
@@ -150,7 +150,7 @@ tutorial-sd-16-conf-diff-check-cr-2:
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 find-services"
 	@$(MAKE) runcmdJ CMD="configure \n set leftover-config CR-2 \n commit"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/original-CR-2.xml"
-	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device CR-2 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-2 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="request leftover-config CR-2 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-2 config | display xml | save config/new-CR-2.xml"
@@ -162,7 +162,7 @@ tutorial-sd-17-conf-diff-check-cr-3:
 	@$(MAKE) runcmdJ CMD="request devices device CR-3 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-3 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-3 config | display xml | save config/original-CR-3.xml"
-	@$(MAKE) runcmdJ CMD="request devices device CR-3 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device CR-3 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router CR-3 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device CR-3 config | display xml | save config/new-CR-3.xml"
 	diff -u config/original-CR-3.xml config/new-CR-3.xml || true
@@ -176,7 +176,7 @@ tutorial-sd-18-conf-diff-check-er-1:
 	@$(MAKE) runcmdJ CMD="request devices device ER-1 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-1 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-1 config | display xml | save config/original-ER-1.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-1 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-1 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-1 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-1 config | display xml | save config/new-ER-1.xml"
 	diff -u config/original-ER-1.xml config/new-ER-1.xml || true
@@ -217,7 +217,7 @@ tutorial-sd-22-find-services-er-1:
 	@$(MAKE) runcmdJ CMD="request nodes router ER-1 find-services"
 	rm config/original-ER-1.xml
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-1 config | display xml | save config/original-ER-1.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-1 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-1 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-1 re-deploy no-networking"
 	rm config/new-ER-1.xml
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-1 config | display xml | save config/new-ER-1.xml"
@@ -229,7 +229,7 @@ tutorial-sd-23-find-services-er-2:
 	@$(MAKE) runcmdJ CMD="request devices device ER-2 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-2 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-2 config | display xml | save config/original-ER-2.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-2 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-2 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-2 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-2 config | display xml | save config/new-ER-2.xml"
 	diff -u config/original-ER-2.xml config/new-ER-2.xml || true
@@ -240,7 +240,7 @@ tutorial-sd-24-find-services-er-3:
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 find-services"
 	@$(MAKE) runcmdJ CMD="request devices device ER-3 sync-from"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/original-ER-3.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/new-ER-3.xml"
 	diff -u config/original-ER-3.xml config/new-ER-3.xml || true
@@ -278,7 +278,7 @@ tutorial-sd-30-find-services-er-3:
 	@$(MAKE) runcmdJ CMD="request devices device ER-3 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/original-ER-3.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/new-ER-3.xml"
 	diff -u config/original-ER-3.xml config/new-ER-3.xml || true
@@ -297,7 +297,7 @@ tutorial-sd-32-find-services-er-3:
 	@$(MAKE) runcmdJ CMD="request devices device ER-3 sync-from"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 find-services"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/original-ER-3.xml"
-	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config"
+	@$(MAKE) runcmdJ CMD="request devices device ER-3 delete-config force"
 	@$(MAKE) runcmdJ CMD="request nodes router ER-3 re-deploy no-networking"
 	@$(MAKE) runcmdJ CMD="show configuration devices device ER-3 config | display xml | save config/new-ER-3.xml"
 	diff -u config/original-ER-3.xml config/new-ER-3.xml || true
