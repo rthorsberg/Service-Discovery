@@ -232,6 +232,20 @@ These steps help ensure that the network services are accurately represented
 in the network management system and that any discrepancies between the 
 desired and actual network configurations are identified and resolved.
 
+## Brownfield Spec Kit uplift
+
+This repository now includes a brownfield-first uplift layer to make future Spec Kit adoption, GitHub review flows, and AI-assisted changes safer:
+
+- baseline brownfield rules: [docs/brownfield/baseline.md](docs/brownfield/baseline.md)
+- Spec Kit adoption guidance: [docs/brownfield/spec-kit-adoption.md](docs/brownfield/spec-kit-adoption.md)
+- Codespaces guidance: [docs/codespaces.md](docs/codespaces.md)
+- AI context assets: [docs/ai/](docs/ai/)
+- numbered brownfield specs: [specs/](specs/)
+- fixture inventory: [brownfield/fixtures/manifest.json](brownfield/fixtures/manifest.json)
+- hosted validation entrypoint: `python3 scripts/validate_brownfield_assets.py`
+
+These additions do not replace the tutorial; they add reviewable guardrails around it.
+
 ## Setup
 
 ### Dependencies

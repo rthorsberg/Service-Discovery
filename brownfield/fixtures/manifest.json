@@ -1,0 +1,90 @@
+{
+  "required_paths": [
+    "docs/brownfield/baseline.md",
+    "docs/brownfield/spec-kit-adoption.md",
+    "docs/codespaces.md",
+    "docs/ai/architecture-summary.md",
+    "docs/ai/service-glossary.md",
+    "docs/ai/deviation-catalog.md",
+    "docs/ai/acceptance-criteria-template.md",
+    "specs/README.md",
+    "specs/templates/brownfield-slice-spec.md",
+    "specs/templates/brownfield-slice-checklist.md",
+    ".github/pull_request_template.md",
+    ".github/copilot-instructions.md",
+    ".github/workflows/brownfield-assets.yml",
+    ".github/workflows/nso-brownfield-validation.yml",
+    ".devcontainer/devcontainer.json",
+    "scripts/validate_brownfield_assets.py"
+  ],
+  "fixtures": [
+    {
+      "name": "CR-1",
+      "path": "device-configs-brownfield/CR-1.xml",
+      "role": "core",
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor"]
+    },
+    {
+      "name": "CR-2",
+      "path": "device-configs-brownfield/CR-2.xml",
+      "role": "core",
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor", "leftover-gap"]
+    },
+    {
+      "name": "CR-3",
+      "path": "device-configs-brownfield/CR-3.xml",
+      "role": "core",
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor"]
+    },
+    {
+      "name": "ER-1",
+      "path": "device-configs-brownfield/ER-1.xml",
+      "role": "edge",
+      "serviceFamilies": ["base-config", "vrf", "vrf-interface", "mtu-variant"]
+    },
+    {
+      "name": "ER-2",
+      "path": "device-configs-brownfield/ER-2.xml",
+      "role": "edge",
+      "serviceFamilies": ["base-config", "vrf", "vrf-interface"]
+    },
+    {
+      "name": "ER-3",
+      "path": "device-configs-brownfield/ER-3.xml",
+      "role": "edge",
+      "serviceFamilies": ["base-config", "vrf", "vrf-interface", "drift-scenario"]
+    }
+  ],
+  "specs": [
+    {
+      "id": "000-brownfield-baseline",
+      "path": "specs/000-brownfield-baseline/spec.md",
+      "requiredHeadings": [
+        "# 000 Brownfield baseline",
+        "## Problem",
+        "## Brownfield input shape",
+        "## Expected discovered intent",
+        "## Allowed diff policy",
+        "## Forbidden diff policy",
+        "## Rollout boundary",
+        "## Fallback path",
+        "## Acceptance evidence"
+      ]
+    },
+    {
+      "id": "001-fixture-regression-harness",
+      "path": "specs/001-fixture-regression-harness/spec.md",
+      "requiredHeadings": [
+        "# 001 Fixture regression harness",
+        "## Problem",
+        "## Brownfield input shape",
+        "## Expected discovered intent",
+        "## Allowed diff policy",
+        "## Forbidden diff policy",
+        "## Rollout boundary",
+        "## Fallback path",
+        "## Acceptance evidence"
+      ]
+    }
+  ]
+}
