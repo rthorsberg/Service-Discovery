@@ -1,0 +1,6 @@
+- [ ] Baseline invariants reviewed
+- [ ] Fixture inventory updated
+- [ ] Slice spec reviewed
+- [ ] Static validation passed
+- [ ] Runtime NSO validation requested or completed
+- [ ] Diff evidence attached to the PR

@@ -1,0 +1,49 @@
+name: NSO brownfield validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      make_target:
+        description: Tutorial target to execute after base setup
+        required: true
+        default: tutorial-sd-10-diff-device-config-cr-1
+        type: choice
+        options:
+          - tutorial-sd-10-diff-device-config-cr-1
+          - tutorial-sd-16-conf-diff-check-cr-2
+          - tutorial-sd-22-find-services-er-1
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on:
+      - self-hosted
+      - linux
+      - nso
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify licensed NSO dependencies
+        shell: bash
+        run: |
+          test -n "$NCS_DIR"
+          test -d packages/juniper-junos-nc-4.16
+          test -d packages/resource-manager
+
+      - name: Run brownfield tutorial target
+        shell: bash
+        run: |
+          source "$NCS_DIR/ncsrc"
+          make build start
+          make tutorial-sd-1-start tutorial-sd-2-onboard-devices tutorial-sd-3-create-nodes
+          make "${{ inputs.make_target }}"
+
+      - name: Stop NSO runtime
+        if: always()
+        shell: bash
+        run: |
+          source "$NCS_DIR/ncsrc"
+          make stop || true

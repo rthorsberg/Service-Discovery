@@ -6,3 +6,4 @@ netsim/
 netsim_init.xml
 .pylint.d
 load-dir
+__pycache__/
