@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 import xml.etree.ElementTree as ET
+from json import JSONDecodeError
 from pathlib import Path
 
 
@@ -83,7 +84,7 @@ def main() -> int:
         validate_required_paths(repo_root, manifest)
         fixture_count = validate_fixtures(repo_root, manifest)
         spec_count = validate_specs(repo_root, manifest)
-    except Exception as exc:  # pylint: disable=broad-except
+    except (ValueError, FileNotFoundError, JSONDecodeError, ET.ParseError) as exc:
         print(f"brownfield asset validation failed: {exc}", file=sys.stderr)
         return 1
 

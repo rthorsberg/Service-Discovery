@@ -13,6 +13,9 @@ on:
           - tutorial-sd-16-conf-diff-check-cr-2
           - tutorial-sd-22-find-services-er-1
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on:

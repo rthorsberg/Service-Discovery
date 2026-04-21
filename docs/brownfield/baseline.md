@@ -6,11 +6,11 @@ This repository is a brownfield NSO tutorial focused on discovering already-depl
 
 ## Current architecture
 
-- **Brownfield fixtures** live in `/home/runner/work/Service-Discovery/Service-Discovery/device-configs-brownfield`.
-- **RFS discovery and regeneration** are implemented in `/home/runner/work/Service-Discovery/Service-Discovery/packages/netinfra-rfs`.
-- **CFS discovery and regeneration** are implemented in `/home/runner/work/Service-Discovery/Service-Discovery/packages/netinfra` and `/home/runner/work/Service-Discovery/Service-Discovery/packages/respl3vpn`.
-- **Tutorial orchestration** lives in `/home/runner/work/Service-Discovery/Service-Discovery/tutorial.mk`.
-- **Tutorial explanation** lives in `/home/runner/work/Service-Discovery/Service-Discovery/README.md` and `README-sections/`.
+- **Brownfield fixtures** live in `device-configs-brownfield`.
+- **RFS discovery and regeneration** are implemented in `packages/netinfra-rfs`.
+- **CFS discovery and regeneration** are implemented in `packages/netinfra` and `packages/respl3vpn`.
+- **Tutorial orchestration** lives in `tutorial.mk`.
+- **Tutorial explanation** lives in `README.md` and `README-sections/`.
 
 ## Brownfield invariants
 
