@@ -1,0 +1,36 @@
+diff --git a/package-meta-data.xml b/package-meta-data.xml
+index 5e94a66..3b66fb3 100644
+--- a/package-meta-data.xml
++++ b/package-meta-data.xml
+@@ -2,7 +2,7 @@
+   <name>netinfra</name>
+   <package-version>1.0</package-version>
+   <description>Network Infrastructure CFS</description>
+-  <ncs-min-version>6.6</ncs-min-version>
++  <ncs-min-version>6.7</ncs-min-version>
+ 
+   <required-package>
+     <name>resource-manager</name>
+diff --git a/src/yang/netinfra.yang b/src/yang/netinfra.yang
+index a84b32b..7201534 100644
+--- a/src/yang/netinfra.yang
++++ b/src/yang/netinfra.yang
+@@ -11,6 +11,9 @@ module netinfra {
+   import tailf-ncs {
+     prefix ncs;
+   }
++  import tailf-ncs-commit-params {
++    prefix ncp;
++  }
+ 
+   description
+     "Bla bla...";
+@@ -52,7 +55,7 @@ module netinfra {
+           leaf message {
+             type string;
+           }
+-          uses ncs:dry-run-cli;
++          uses ncp:dry-run-cli;
+         }
+       }
+ 
