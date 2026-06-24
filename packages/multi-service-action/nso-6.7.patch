@@ -1,0 +1,63 @@
+diff --git a/package-meta-data.xml b/package-meta-data.xml
+index 317b6cb..c79959e 100644
+--- a/package-meta-data.xml
++++ b/package-meta-data.xml
+@@ -2,7 +2,7 @@
+   <name>multi-service-action</name>
+   <package-version>1.0</package-version>
+   <description>Package containing reusable action to invoke multiple service actions in one call.</description>
+-  <ncs-min-version>6.6</ncs-min-version>
++  <ncs-min-version>6.7</ncs-min-version>
+ 
+   <required-package>
+     <name>maagic-copy</name>
+diff --git a/src/yang/multi-service-action.yang b/src/yang/multi-service-action.yang
+index 771b679..b2bea79 100644
+--- a/src/yang/multi-service-action.yang
++++ b/src/yang/multi-service-action.yang
+@@ -13,7 +13,10 @@ module multi-service-action {
+   import tailf-ncs {
+     prefix ncs;
+   }
+-  
++  import tailf-ncs-commit-params {
++    prefix ncp;
++  }
++
+   grouping multi-service-actions {
+     action re-deploy {
+       tailf:actionpoint msa-re-deploy;
+@@ -24,7 +27,7 @@ module multi-service-action {
+             type ncs:outformat3;
+           }
+         }
+-        uses ncs:ncs-commit-params;
++        uses ncp:commit-params;
+         uses ncs:service-depth {
+           refine "depth/deep" {
+             description "Recursively 're-deploy' stacked services";
+@@ -66,19 +69,19 @@ module multi-service-action {
+           }
+           choice outformat {
+             case case-xml {
+-              uses ncs:dry-run-xml;
++              uses ncp:dry-run-xml;
+             }
+             case case-cli {
+-              uses ncs:dry-run-cli;
++              uses ncp:dry-run-cli;
+             }
+             case case-cli-c {
+-              uses ncs:dry-run-cli-c;
++              uses ncp:dry-run-cli-c;
+             }
+             case case-native {
+-              uses ncs:dry-run-native;
++              uses ncp:dry-run-native;
+             }
+           }
+-          uses ncs:ncs-commit-result;
++          uses ncp:commit-result;
+         }
+       }
+     }

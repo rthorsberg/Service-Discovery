@@ -1,0 +1,36 @@
+diff --git a/package-meta-data.xml b/package-meta-data.xml
+index 94d203b..a5a6a02 100644
+--- a/package-meta-data.xml
++++ b/package-meta-data.xml
+@@ -2,7 +2,7 @@
+   <name>netinfra-rfs</name>
+   <package-version>1.0</package-version>
+   <description>Network Infrastructure RFS</description>
+-  <ncs-min-version>6.6</ncs-min-version>
++  <ncs-min-version>6.7</ncs-min-version>
+ 
+   <required-package>
+     <name>multi-service-action</name>
+diff --git a/src/yang/netinfra-rfs.yang b/src/yang/netinfra-rfs.yang
+index 57ab2a4..06d75cc 100644
+--- a/src/yang/netinfra-rfs.yang
++++ b/src/yang/netinfra-rfs.yang
+@@ -11,6 +11,9 @@ module netinfra-rfs {
+   import tailf-ncs {
+     prefix ncs;
+   }
++  import tailf-ncs-commit-params {
++    prefix ncp;
++  }
+   import netinfra-rfs-private {
+     prefix nirp;
+   }
+@@ -75,7 +78,7 @@ module netinfra-rfs {
+           leaf message {
+             type string;
+           }
+-          uses ncs:dry-run-cli;
++          uses ncp:dry-run-cli;
+         }
+       }
+     }

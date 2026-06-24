@@ -1,0 +1,36 @@
+diff --git a/package-meta-data.xml b/package-meta-data.xml
+index 682a405..87450e3 100644
+--- a/package-meta-data.xml
++++ b/package-meta-data.xml
+@@ -2,7 +2,7 @@
+   <name>respl3vpn</name>
+   <package-version>1.0</package-version>
+   <description>L3VPN CFS</description>
+-  <ncs-min-version>6.6</ncs-min-version>
++  <ncs-min-version>6.7</ncs-min-version>
+ 
+   <component>
+     <name>l3vpn</name>
+diff --git a/src/yang/respl3vpn.yang b/src/yang/respl3vpn.yang
+index 5ebf4ae..6f6c8fa 100644
+--- a/src/yang/respl3vpn.yang
++++ b/src/yang/respl3vpn.yang
+@@ -11,6 +11,9 @@ module respl3vpn {
+   import tailf-ncs {
+     prefix ncs;
+   }
++  import tailf-ncs-commit-params {
++    prefix ncp;
++  }
+ 
+   description
+     "L3VPN CFS
+@@ -54,7 +57,7 @@ module respl3vpn {
+           leaf message {
+             type string;
+           }
+-          uses ncs:dry-run-cli;
++          uses ncp:dry-run-cli;
+         }
+       }
+ 
