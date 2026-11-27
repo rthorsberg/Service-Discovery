@@ -2,7 +2,7 @@
   <name>respl3vpn</name>
   <package-version>1.0</package-version>
   <description>L3VPN CFS</description>
-  <ncs-min-version>6.2</ncs-min-version>
+  <ncs-min-version>6.6</ncs-min-version>
 
   <component>
     <name>l3vpn</name>

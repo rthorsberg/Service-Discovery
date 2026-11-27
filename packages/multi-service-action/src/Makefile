@@ -1,8 +1,13 @@
-all: fxs
+all: prepare-nso-version fxs
 .PHONY: all
 
 # Include standard NCS examples build definitions and rules
 include $(NCS_DIR)/src/ncs/build/include.ncs.mk
+
+NSO_VERSION ?= $(shell ncs --version)
+NSO_67_OR_LATER = $(shell echo "$(NSO_VERSION)" | awk -F. '{ print (($$1 > 6) || ($$1 == 6 && $$2 >= 7)) ? 1 : 0 }')
+NSO_67_PATCH = ../nso-6.7.patch
+NSO_67_MARKER = tailf-ncs-commit-params
 
 SRC = $(wildcard yang/*.yang)
 DIRS = ../load-dir
@@ -15,6 +20,14 @@ FXS = $(SRC:yang/%.yang=../load-dir/%.fxs)
 
 NCSCPATH   = $(YANGPATH:%=--yangpath %)
 YANGERPATH = $(YANGPATH:%=--path %)
+
+prepare-nso-version:
+	@if [ "$(NSO_67_OR_LATER)" = "1" ]; then \
+		grep -q "$(NSO_67_MARKER)" yang/multi-service-action.yang || patch -d .. -p1 < $(NSO_67_PATCH); \
+	else \
+		! grep -q "$(NSO_67_MARKER)" yang/multi-service-action.yang || patch -d .. -p1 -R < $(NSO_67_PATCH); \
+	fi
+.PHONY: prepare-nso-version
 
 fxs: $(DIRS) $(FXS)
 

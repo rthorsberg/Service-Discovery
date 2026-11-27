@@ -145,6 +145,6 @@ configure-resource-pools:
 	@$(MAKE) loadconf FILE=nso-config/config-resource-pools.xml
 .PHONY: configure-resource-pools
 
-netsim-load-xml-conf:
-	printf "configure\nload merge $(ROOT_DIR)/$(FILE)\ncommit\n" | ncs-netsim cli $(NETSIM)
-.PHONY: netsim-load-xml-conf
+netsim-load-override-xml-conf:
+	printf "configure\nload override $(ROOT_DIR)/$(FILE)\ncommit\n" | ncs-netsim cli $(NETSIM)
+.PHONY: netsim-load-override-xml-conf

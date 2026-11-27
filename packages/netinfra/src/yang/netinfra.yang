@@ -258,7 +258,6 @@ module netinfra {
   }
 
   ncs:plan-outline netinfra-backbone-link-plan {
-  ncs:self-as-service-status;
     ncs:component-type "ncs:self" {
       ncs:state "ncs:init";
       ncs:state "netinfra:backbone-link-create-rfs" {
