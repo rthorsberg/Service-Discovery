@@ -71,8 +71,8 @@ flowchart TB
   EBN -->|rfs-ebgp-neighbor.xml| DEV
 ```
 
-`/netinfra/router` also allocates resources through the Resource Manager
-package (router ID from `router-id`, IPv4 loopback from `ipv4-loopback`), and
+`/netinfra/router` also allocates resources through the Resource Manager 5
+`Allocator` API (router ID from `router-id`, IPv4 loopback from `ipv4-loopback`), and
 `/netinfra/backbone-link` allocates link prefixes from `ipv4-backbone-link`
 and `ipv6-backbone-link`. Pools are defined in
 [`nso-config/config-resource-pools.xml`](../../nso-config/config-resource-pools.xml).
@@ -86,7 +86,7 @@ and diff check" described in [`tutorial.mk`](../../tutorial.mk).
 ```mermaid
 flowchart TD
   subgraph Setup["Setup (tutorial-sd-1..3)"]
-    S1["Load brownfield XML into netsims<br/>device-configs-brownfield/*.xml"]
+    S1["Load override brownfield XML into netsims<br/>device-configs-brownfield/*.xml"]
     S2["Load netsim_init.xml + devices sync-from"]
     S3["Create skeleton /nodes/router{X}<br/>nso-config/config-nodes.xml"]
     S1 --> S2 --> S3
@@ -97,7 +97,7 @@ flowchart TD
     B["Save original config<br/>config/original-X.xml"]
     C["nodes router X find-services [dry-run]<br/>nodes_router.py FindServices"]
     D["Commit service intent with<br/>reconcile keep-non-service-config"]
-    E["devices device X delete-config<br/>(NSO-local only)"]
+    E["devices device X delete-config force<br/>(NSO-local only)"]
     F["nodes router X re-deploy no-networking<br/>multi-service-action + maagic-copy"]
     G["Save regenerated config<br/>config/new-X.xml"]
     H{"diff -u original new"}
@@ -128,7 +128,7 @@ flowchart TD
 | Service model design | Reference ("ideal") RFS models per device, grouped under `/nodes/router`. | `packages/netinfra-rfs/src/yang/` |
 | RFS discovery | `find-services` action on each `/nodes/router{X}` walks `/devices/device{X}/config/junos:configuration` using textual markers (interface descriptions, BGP group names, RD/RT IDs). | `packages/netinfra-rfs/python/netinfra_rfs/nodes_router.py` |
 | Commit with reconcile | The action commits its write transaction with `reconcile keep-non-service-config` (or `discard-non-service-config`), or with `dry-run` (CLI format) to preview. New services take ownership of matching pre-existing device config. | same file, `FindServices.cb_action` |
-| delete-config | `devices device X delete-config` removes the device config in NSO only. | `tutorial.mk` |
+| delete-config | `devices device X delete-config force` removes the device config in NSO only. Upstream added `force` for NSO 6.6 (`c1dc36a`). | `tutorial.mk` |
 | Re-deploy no-networking | `nodes router X re-deploy no-networking` is **not** the built-in service action; it is the `multi-service-action` grouping, which re-deploys every service under the router entry (presence containers and list entries) in parallel threads and copies results back with `maagic-copy`. | `packages/multi-service-action`, `packages/maagic-copy` |
 | Save new + diff | Regenerated config saved and `diff -u` against original. `-` lines are not covered; `+` lines are config the services would add (a service bug for discovery purposes). | `tutorial.mk` |
 | leftover-config | A temporary service that emits the uncovered config so it drops out of the diff. Linked into `ncs-run/packages` only when needed. | `patches/leftover-config` |
@@ -141,8 +141,16 @@ The packages in `packages/` are the **v1** state. Two patch sets under
 [`patches/`](../../patches/) evolve them in place, driven from
 [`patches/Makefile`](../../patches/Makefile). v3 hunks were generated against
 the v2 state, so the patches must be applied in order (v2, then v3). Both apply
-cleanly to a fresh checkout in that order; `make -C patches restore-patches`
-reverts them with `git restore`.
+cleanly to a fresh checkout in that order, on top of the NSO 6.7 build
+patches as well (with 3-line offsets in `respl3vpn.yang`).
+`make -C patches restore-patches` reverts them with `git restore`.
+
+Since upstream `29a4b87` there is a second, independent patch mechanism: each
+of `netinfra`, `netinfra-rfs`, `respl3vpn` and `multi-service-action` carries
+a `nso-6.7.patch` that the package build applies automatically on NSO 6.7 or
+later. It adapts the YANG to the `tailf-ncs-commit-params` module and raises
+`ncs-min-version` to 6.7. That patch tracks the NSO version, not the tutorial
+step; see the [package reference](package-reference.md#nso-67-build-patches).
 
 | Version | Trigger in tutorial | Changes |
 | --- | --- | --- |
@@ -159,15 +167,20 @@ tutorial accepts this as a cleanup-phase diff (see
 ### Stray patch artefacts in `packages/`
 
 These files are left over from earlier patch runs and are **not** used by the
-build. They are kept in the repository on purpose and should not be deleted
-without a decision from the maintainers:
+build. GNU `patch` writes a `<file>.orig` backup whenever a hunk applies with
+an offset or fuzz (its default `backup-if-mismatch` behaviour), which is the
+most likely origin. Upstream still keeps them up to date: `c1dc36a` bumped
+both `package-meta-data.xml.orig` files to 6.6. They are kept in the
+repository on purpose and should not be deleted without a decision from the
+maintainers:
 
 | File | What it is |
 | --- | --- |
-| `packages/netinfra-rfs/package-meta-data.xml.orig` | Identical to `package-meta-data.xml`. |
-| `packages/respl3vpn/package-meta-data.xml.orig` | Identical to `package-meta-data.xml`. |
+| `packages/netinfra-rfs/package-meta-data.xml.orig` | Identical to `package-meta-data.xml` (both 6.6). It is overwritten when v3's meta-data hunk applies with an offset, which it always does. |
+| `packages/respl3vpn/package-meta-data.xml.orig` | Identical to `package-meta-data.xml` (both 6.6). |
 | `packages/respl3vpn/python/respl3vpn/l3vpn.py.orig` | Identical to `l3vpn.py`. |
 | `packages/netinfra-rfs/python/netinfra_rfs/nodes_router.py.orig` | v2 state of `nodes_router.py` (includes the MTU read-back), with non-raw regex strings. |
+| `packages/respl3vpn/src/yang/respl3vpn.yang.orig` (not committed) | Created on NSO 6.7 when v2/v3 apply with offsets on top of the 6.7 patch. It shows up as an untracked file. |
 | `packages/netinfra-rfs/python/netinfra_rfs/nodes_router.py.rej` and `.rej.orig` | Rejected v3-style hunks targeting a *different* `nodes_router.py` that has a `CreateRfs(NanoService)` class and `shared_copy_tree` calls (an LSA-style variant). That variant does not exist in this repository. |
 
 ## Supporting assets
@@ -176,6 +189,10 @@ without a decision from the maintainers:
   configs (NACM + Junos configuration) for CR-1..3 and ER-1..3.
 - **NSO bootstrap config**: `nso-config/` (NACM group + Python VM debug
   logging, resource pools, node skeletons, out-of-band eBGP change).
+- **CFS examples**: `cfs-example-clean.xml` and `cfs-example-custom.xml`
+  (greenfield `/netinfra` intent; see
+  [walkthrough](walkthrough.md#cfs-example-configurations)).
+- **NSO 6.7 build patches**: `packages/{multi-service-action,netinfra,netinfra-rfs,respl3vpn}/nso-6.7.patch`.
 - **Guardrails**: `brownfield/fixtures/manifest.json`,
   `scripts/validate_brownfield_assets.py`, `specs/`, `.github/` (see
   [walkthrough](walkthrough.md#ci-and-guardrails)).

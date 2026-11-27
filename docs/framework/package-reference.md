@@ -7,15 +7,48 @@ prefixes. "v2" and "v3" refer to the patch sets in `patches/` (see
 
 | Package | Layer | Min NSO | Requires | Python components |
 | --- | --- | --- | --- | --- |
-| `netinfra` | CFS (infrastructure) | 6.2 | `resource-manager` | `router`, `backbone_link`, `ibgp_fullmesh` |
-| `netinfra-rfs` | RFS (per device) | 6.2 | `multi-service-action` | `base-config`, `backbone-interface`, `ibgp-neighbor`, `nodes-router`, `rfs-vrf`, `rfs-vrf-interface` (+ `rfs-ebgp-neighbor` in v3) |
-| `respl3vpn` | CFS (L3VPN) | 6.2 | — (writes into `netinfra-rfs` paths at runtime) | `l3vpn` (+ `vrf-ebgp-customer` in v3) |
-| `multi-service-action` | Library (YANG grouping + action) | 6.3 | `maagic-copy` | `main` |
+| `netinfra` | CFS (infrastructure) | 6.6 (6.7 when built on 6.7) | `resource-manager` | `router`, `backbone_link`, `ibgp_fullmesh` |
+| `netinfra-rfs` | RFS (per device) | 6.6 (6.7 when built on 6.7) | `multi-service-action` | `base-config`, `backbone-interface`, `ibgp-neighbor`, `nodes-router`, `rfs-vrf`, `rfs-vrf-interface` (+ `rfs-ebgp-neighbor` in v3) |
+| `respl3vpn` | CFS (L3VPN) | 6.6 (6.7 when built on 6.7) | — (writes into `netinfra-rfs` paths at runtime) | `l3vpn` (+ `vrf-ebgp-customer` in v3) |
+| `multi-service-action` | Library (YANG grouping + action) | 6.6 (6.7 when built on 6.7) | `maagic-copy` | `main` |
 | `maagic-copy` | Library (Python only) | 4.5 | — | none |
 | `leftover-config` (in `patches/`) | Temporary discovery service | 6.3 | — | `main` |
 
-`multi-service-action` and `leftover-config` declare `ncs-min-version` 6.3,
-so the effective minimum for the full tutorial is **NSO 6.3**.
+`netinfra`, `netinfra-rfs`, `respl3vpn` and `multi-service-action` declare
+`ncs-min-version` 6.6, so the effective minimum for the tutorial is
+**NSO 6.6**. On NSO 6.7 or later, the build patches these four packages to
+6.7 (see [NSO 6.7 build patches](#nso-67-build-patches)). `netinfra` requires
+**Resource Manager 5** (`resource_manager.service.Allocator`).
+
+## NSO 6.7 build patches
+
+NSO 6.7 moved the commit-parameter and dry-run groupings out of `tailf-ncs`
+into a new module, `tailf-ncs-commit-params`, and this change is not backwards
+compatible. Each affected package therefore ships a `nso-6.7.patch` at its
+root:
+
+| Package | Patched files | Change |
+| --- | --- | --- |
+| `multi-service-action` | `src/yang/multi-service-action.yang`, `package-meta-data.xml` | `import tailf-ncs-commit-params { prefix ncp; }`. `ncs:ncs-commit-params` → `ncp:commit-params`, `ncs:dry-run-*` → `ncp:dry-run-*`, `ncs:ncs-commit-result` → `ncp:commit-result`. Min version 6.7. |
+| `netinfra` | `src/yang/netinfra.yang`, `package-meta-data.xml` | Import `ncp`; `find-services` output uses `ncp:dry-run-cli`. Min version 6.7. |
+| `netinfra-rfs` | `src/yang/netinfra-rfs.yang`, `package-meta-data.xml` | Same as `netinfra`. |
+| `respl3vpn` | `src/yang/respl3vpn.yang`, `package-meta-data.xml` | Same as `netinfra`. |
+
+Each package's `src/Makefile` runs a `prepare-nso-version` target before
+`fxs`. It takes `NSO_VERSION` (default `ncs --version`, which can be
+overridden on the make command line) and decides whether the version is 6.7
+or later. It then checks whether the YANG file already contains the marker
+`tailf-ncs-commit-params`:
+
+- On 6.7 or later, with no marker, it runs `patch -d .. -p1 < ../nso-6.7.patch`.
+- Below 6.7, with the marker present, it reverse-applies the same patch.
+- Otherwise it does nothing, so the target is idempotent.
+
+The patch edits **tracked source files in place**. A 6.7 build therefore
+leaves `git status` dirty, and those edits show up in `git diff packages`
+(tutorial step 20). See
+[limitations](limitations.md#procedure-and-tooling-caveats) for how this
+interacts with `patches/v2`, `patches/v3` and `restore-patches`.
 
 ---
 
@@ -43,7 +76,8 @@ than customer services.
     `vars` (allocated prefixes, per-side addresses and loopbacks,
     `left-ibgp-type`/`right-ibgp-type`).
   - Plan state `backbone-link-create-rfs` waits (pre-condition monitor) until
-    both routers' `vars` have IPv4 and IPv6 addresses.
+    both routers' `vars` have IPv4 and IPv6 addresses. Upstream removed
+    `ncs:self-as-service-status` from the plan outline for NSO 6.6.
 - `/infra-internal/ibgp-fullmesh` (presence container, in
   `netinfra-private`): servicepoint `netinfra-ibgp-fullmesh-servicepoint`,
   `router{name}` with mandatory `ipv4-address`, `ipv6-address`.
@@ -52,9 +86,9 @@ than customer services.
 
 | File | Class | Behaviour |
 | --- | --- | --- |
-| `router.py` | `ServiceCallbacks` | Allocates router ID from pool `router-id` (requesting `custom/id` if set) and IPv4 /32 loopback from `ipv4-loopback` (static if `custom/ipv4-address` set). IPv6 loopback is derived as `2001:db8::{id}`; `custom/ipv6-address` and the `ipv6-loopback` pool are not used. Applies `router.xml`. For `role core`, creates `/infra-internal/ibgp-fullmesh/router{name}`. |
+| `router.py` | `ServiceCallbacks` | Uses the RM 5 builder `Allocator(service)`: `id(custom/id).pool('router-id').allocate(name)` for the router ID, and `ip(custom/ipv4-address + '/32').pool('ipv4-loopback').prefix_length(32).allocate(name)` for the IPv4 loopback. A `None` value means a dynamic allocation; a set value requests that specific resource. IPv6 loopback is derived as `2001:db8::{id}`; `custom/ipv6-address` and the `ipv6-loopback` pool are not used. Applies `router.xml`. For `role core`, creates `/infra-internal/ibgp-fullmesh/router{name}`. |
 | `router.py` | `FindServices` | Registered on `netinfra-find-services`. `find_routers`: for each `/nodes/router` with no existing `/netinfra/router`, copies `base-config` roles, `id`, IPv4/IPv6 into `custom`. `find_backbone_links`: for each RFS `backbone-interface` where `router < remote/device` (alphabetical), creates a `backbone-link` with `custom` prefixes derived from the interface addresses. Commits with reconcile or dry-run. |
-| `backbone_link.py` | `CreateRfs` (NanoService) | Enforces `left-router < right-router`. Allocates IPv4 (/31 default) and IPv6 (/126 default) prefixes (static if `custom` set). Sets iBGP types: core-core → `none` (handled by full mesh), core-edge → `rr-client` on core and `direct` on edge. Computes addresses (/31 and /127 use the network address for the left side). Applies `cfs-backbone-link`. |
+| `backbone_link.py` | `CreateRfs` (NanoService) | Enforces `left-router < right-router`. Allocates IPv4 (/31) and IPv6 (/126) prefixes with the RM 5 `Allocator` (`ip(custom/...).pool(...).prefix_length(...).allocate(...)`); a set `custom` prefix requests that prefix. Sets iBGP types: core-core → `none` (handled by full mesh), core-edge → `rr-client` on core and `direct` on edge. Computes addresses (/31 and /127 use the network address for the left side). Applies `cfs-backbone-link`. |
 | `ibgp_fullmesh.py` | `ServiceCallbacks` | Applies `cfs-ibgp-fullmesh` once per member router. |
 
 ### Templates
@@ -67,7 +101,7 @@ than customer services.
 
 ### Build
 
-`src/Makefile` includes `pre-compile.mk`, which can generate a `*-stripped.yang`
+`src/Makefile` runs `prepare-nso-version` (see above) and then includes `pre-compile.mk`, which can generate a `*-stripped.yang`
 module (servicepoints and `BEGIN_STRIP`/`END_STRIP` blocks removed) for reuse
 in other models. `STRIP_TARGET` is never set, so in practice only `fxs` is
 built; the `BEGIN_STRIP` markers in `netinfra.yang` and `respl3vpn.yang` are

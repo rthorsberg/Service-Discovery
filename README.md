@@ -261,12 +261,15 @@ Juniper-Junos NED. To execute the tutorial successfully, these packages must
 be placed within the packages directory.
 
 Versions that the tutorial supports:
-resource-manager: 4.2.8
+resource-manager: 5.x (the `netinfra` package uses the RM 5 `Allocator` API)
 juniper-junos: 4.16.2 (placed as `packages/juniper-junos-nc-4.16`)
 
-NSO 6.3 or later is required (the `multi-service-action` and `leftover-config`
-packages declare `ncs-min-version` 6.3). `make build` also runs `pylint` on the
-`maagic-copy` package; install it or set `SKIP_LINT=true`. See
+NSO 6.6 or later is required (the service packages declare `ncs-min-version`
+6.6). On NSO 6.7 or later, `make build` automatically applies each package's
+`nso-6.7.patch` to adapt the YANG to the `tailf-ncs-commit-params` module.
+This modifies tracked files, so `git status` shows them as changed.
+`make build` also runs `pylint` on the `maagic-copy` package; install it or
+set `SKIP_LINT=true`. See
 [docs/framework/walkthrough.md](docs/framework/walkthrough.md#prerequisites)
 for the full list.
 

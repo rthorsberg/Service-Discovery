@@ -8,9 +8,9 @@ For the narrative per device, see the `README-sections/` parts linked from the
 
 | Item | Version / location | Enforced by |
 | --- | --- | --- |
-| Cisco NSO (local install) | 6.3 or later (`multi-service-action` and `leftover-config` declare `ncs-min-version` 6.3; the other packages declare 6.2) | `Makefile` fails if `NCS_DIR` is unset |
+| Cisco NSO (local install) | 6.6 or later. `netinfra`, `netinfra-rfs`, `respl3vpn` and `multi-service-action` declare `ncs-min-version` 6.6; `leftover-config` declares 6.3 and `maagic-copy` 4.5. On 6.7 or later, the build auto-applies each package's `nso-6.7.patch`, which raises those four to 6.7. | `Makefile` fails if `NCS_DIR` is unset; NSO refuses to load packages whose `ncs-min-version` is higher than the running version |
 | Juniper Junos NETCONF NED | `packages/juniper-junos-nc-4.16` (README names 4.16.2) | `Makefile` fails if the directory is missing |
-| Resource Manager | `packages/resource-manager` (README names 4.2.8) | `Makefile` fails if the directory is missing |
+| Resource Manager | **5.x** in `packages/resource-manager` (`netinfra` imports `resource_manager.service.Allocator`, the RM 5 Python API; RM 4.x is no longer compatible) | `Makefile` checks only that the directory exists; the wrong major version fails when the `netinfra` Python components load |
 | Python 3.9+ in the NSO Python VM | `asyncio.to_thread` in `multi-service-action` | runtime |
 | `pylint` (and optionally `mypy`) | for `packages/maagic-copy/src` | `make build` fails without `pylint` unless `SKIP_LINT=true` |
 | GNU `sed` (`gsed` on macOS) | `packages/netinfra/src/pre-compile.mk` | `make` error |
@@ -28,7 +28,12 @@ make build start
 `make build` runs these steps in order:
 
 1. `make_packages`: `make -C packages/<pkg>/src all` for every package, plus
-   `patches/leftover-config/src`. YANG is compiled with `ncsc --fail-on-warnings`.
+   `patches/leftover-config/src`. In `netinfra`, `netinfra-rfs`, `respl3vpn` and
+   `multi-service-action`, `all` first runs `prepare-nso-version`. On NSO 6.7
+   or later it applies `../nso-6.7.patch` (and reverts it again on older
+   versions); see the
+   [package reference](package-reference.md#nso-67-build-patches). YANG is
+   compiled with `ncsc --fail-on-warnings`.
 2. `ncs-setup --dest ncs-run`, then `mkdir config`. **The `ncs.conf` used at
    runtime is the one `ncs-setup` generates in `ncs-run/`.** The root
    [`ncs.conf`](../../ncs.conf) is not referenced by any make target. It is a
@@ -46,17 +51,19 @@ and netsims without rebuilding packages), `rebuild` (rebuilds `respl3vpn`,
 `netinfra`, `netinfra-rfs` only, then `packages reload`), `cli`, `clean_cdb`.
 Helpers used by `tutorial.mk`: `runcmdJ CMD=...` (pipes `unhide debug` +
 command into `ncs_cli --stop-on-error -u admin`), `loadconf FILE=...`
-(`load merge` + commit), `netsim-load-xml-conf NETSIM=... FILE=...`.
+(`load merge` + commit), `netsim-load-override-xml-conf NETSIM=... FILE=...`
+(`load override` + commit in the netsim CLI, which replaces the netsim's whole
+configuration, NACM included, with the fixture).
 
 ## Tutorial step map
 
 All targets are in [`tutorial.mk`](../../tutorial.mk). "Coverage check"
-means: sync-from, save original, find-services, delete-config, re-deploy
+means: sync-from, save original, find-services, `delete-config force`, re-deploy
 no-networking, save new, diff, sync-from.
 
 | Steps | Target(s) | What happens | Expected outcome |
 | --- | --- | --- | --- |
-| 1 | `tutorial-sd-1-start` | Load NACM/Python-VM logging (`nso-config/init.xml`) and resource pools; load each fixture into its netsim. | Netsims hold brownfield config. |
+| 1 | `tutorial-sd-1-start` | Load NACM/Python-VM logging (`nso-config/init.xml`) and resource pools; load each fixture into its netsim with `load override`. | Netsims hold exactly the brownfield config. |
 | 2 | `tutorial-sd-2-onboard-devices` | Load `netsim_init.xml`, `devices sync-from`. | NSO CDB mirrors devices. |
 | 3 | `tutorial-sd-3-create-nodes` | Load `nso-config/config-nodes.xml`. | Empty `/nodes/router{X}` entries with `netsim true`. |
 | 4–11 | `tutorial-sd-4` … `tutorial-sd-11` | CR-1 coverage check, one step at a time (5 is the dry-run). | No diff. |
@@ -89,6 +96,25 @@ Things to know when running the steps (see
   simulates an out-of-band change from NSO's own CLI.
 - To start over, `make -C patches restore-patches` reverts v2/v3. The
   leftover-config symlink is removed by `make clean` or `make reset`.
+
+## CFS example configurations
+
+Two root files, added upstream in `a6605fa`, show the **greenfield**
+equivalent of what `netinfra find-services` discovers (steps 25 and 26). No
+make target or tutorial step loads them.
+
+| File | Contents | Use |
+| --- | --- | --- |
+| [`cfs-example-clean.xml`](../../cfs-example-clean.xml) | `/netinfra/router` for CR-1..3 (`core`) and ER-1..3 (`edge`), plus the nine `/netinfra/backbone-link` entries, with no `custom` values. | Lets Resource Manager allocate router IDs, loopbacks and link prefixes. Shows what the services produce on a greenfield network; the allocations are not guaranteed to match the brownfield addresses. |
+| [`cfs-example-custom.xml`](../../cfs-example-custom.xml) | Same instances with `custom/id`, `custom/ipv4-address`, `custom/ipv6-address` (routers) and `custom/ipv4-prefix`, `custom/ipv6-prefix` (links) pinned to the brownfield values. | Matches the intent that CFS discovery would create from the fixtures. Useful as a reference, or for comparing against `show running-config netinfra` after step 26. |
+
+Both files can be loaded with the generic helper, for example
+`make loadconf FILE=cfs-example-custom.xml`. This is a normal commit, so the
+resulting config is pushed to the devices. Load them only on a fresh
+environment after the setup steps (resource pools, onboarded devices), not on
+top of discovered services. `custom/ipv6-address` in the custom file has no
+effect, because `router.py` always derives the IPv6 loopback as
+`2001:db8::{id}`.
 
 ## Codespaces and devcontainer
 

@@ -47,7 +47,7 @@ package reference.
 
 ## Known brownfield constraints
 
-- Full validation requires **NSO 6.3 or later**, **Juniper Junos NED 4.16.x** (`juniper-junos-nc-4.16`), and **resource-manager 4.2.8**.
+- Full validation requires **NSO 6.6 or later** (6.7+ builds auto-apply `packages/*/nso-6.7.patch`), **Juniper Junos NED 4.16.x** (`juniper-junos-nc-4.16`), and **resource-manager 5.x**.
 - `find-services` commits with reconcile flags and without `no-networking`; it is read-safe only when the generated config already matches the device. Always dry-run first.
 - The repository currently depends on assets that cannot be assumed in GitHub-hosted CI or default Codespaces.
 - The root `Makefile` enforces NSO prerequisites before running the tutorial targets.

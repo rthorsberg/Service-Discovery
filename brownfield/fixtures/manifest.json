@@ -20,8 +20,24 @@
     ".github/workflows/brownfield-assets.yml",
     ".github/workflows/nso-brownfield-validation.yml",
     ".devcontainer/devcontainer.json",
-    "scripts/validate_brownfield_assets.py"
+    "scripts/validate_brownfield_assets.py",
+    "cfs-example-clean.xml",
+    "cfs-example-custom.xml",
+    "packages/multi-service-action/nso-6.7.patch",
+    "packages/netinfra/nso-6.7.patch",
+    "packages/netinfra-rfs/nso-6.7.patch",
+    "packages/respl3vpn/nso-6.7.patch"
   ],
+  "runtimeRequirements": {
+    "nsoMinVersion": "6.6",
+    "nsoVersionDependentPatch": {
+      "fromVersion": "6.7",
+      "marker": "tailf-ncs-commit-params",
+      "packages": ["multi-service-action", "netinfra", "netinfra-rfs", "respl3vpn"]
+    },
+    "resourceManager": "5.x",
+    "ned": "juniper-junos-nc-4.16"
+  },
   "fixtures": [
     {
       "name": "CR-1",

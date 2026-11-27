@@ -2,7 +2,9 @@
 
 These come from the tutorial's stated scope (README "Assumptions") and from
 static review of the code. Items marked *static analysis* have not been
-confirmed on a running NSO.
+confirmed on a running NSO. All items were re-checked against upstream
+`3c77946` (NSO 6.6/6.7 and RM 5 support). None of the code gaps below were
+fixed by that sync. The NSO 6.7 and RM 5 caveats are new.
 
 ## Stated assumptions (by design)
 
@@ -68,7 +70,13 @@ confirmed on a running NSO.
 - `netinfra-rfs` `find-services` has no `ebgp-neighbor` enum value in v3, so
   eBGP discovery runs only with `all`.
 - `netinfra/router` ignores `custom/ipv6-address` and derives the IPv6 loopback
-  as `2001:db8::{id}`. The `ipv6-loopback` pool is defined but unused.
+  as `2001:db8::{id}`. The `ipv6-loopback` pool is defined but unused. The
+  RM 5 rewrite did not change this, and `cfs-example-custom.xml` sets
+  `custom/ipv6-address` values that have no effect.
+- `find_routers` still skips routers that already have a `/netinfra/router`.
+  The code comment gives RM's refusal to re-request an allocated resource as
+  the reason; that comment predates the RM 5 `Allocator` and has not been
+  re-validated.
 - `backbone-link` sets iBGP types only for core–core and core–edge pairs.
   Edge–edge or peering links leave `vars/*-ibgp-type` unset.
 - v2 CFS MTU logic: when a VPN's most common MTU is 1600, endpoints that share
@@ -102,6 +110,28 @@ confirmed on a running NSO.
   (`files-output`, `no-space-check`, `bad-functions`), which recent versions
   may reject. Set `SKIP_LINT=true` to bypass.
 - `patches/v3` must be applied after `patches/v2`.
+- **NSO 6.7 build patches edit tracked files.** On NSO 6.7 or later,
+  `prepare-nso-version` patches YANG and `package-meta-data.xml` in four
+  packages in place. As a result:
+  - `git status` is dirty after any build, and `make tutorial-sd-20-git-diff-services`
+    shows the 6.7 changes mixed in with the v2 changes.
+  - `patches/v2` and `patches/v3` still apply (`respl3vpn.yang` at a 3-line
+    offset), but GNU `patch` then leaves an untracked
+    `respl3vpn.yang.orig`.
+  - `make -C patches restore-patches` runs `git restore` on
+    `respl3vpn.yang`, `respl3vpn/package-meta-data.xml` and
+    `netinfra-rfs/package-meta-data.xml`, which also discards their 6.7
+    edits. The next `make rebuild` re-patches `respl3vpn` because its marker
+    is gone. `netinfra-rfs` keeps the marker in `netinfra-rfs.yang`, so its
+    meta-data stays at 6.6 with 6.7-style YANG. That still loads on 6.7, but
+    the two files no longer agree.
+  - The `grab-diff-v2` and `grab-diff-v3` targets diff against `git HEAD`, so
+    on 6.7 they would capture the 6.7 changes in the v2/v3 patch files.
+  - The version check parses `ncs --version` with `awk -F.`. Override it with
+    `make NSO_VERSION=6.7 ...` if needed.
+- `resource-manager` must be **5.x**; the root `Makefile` only checks that
+  `packages/resource-manager` exists, so RM 4.x fails later, when the Python
+  components load.
 - Coverage diffs are line-based `diff -u` on XML, so ordering or formatting
   noise is possible. Only step 10 fails on a diff; later steps use `|| true`.
 - Hosted CI validates file presence, XML well-formedness, and spec headings
