@@ -31,16 +31,24 @@ These are non-negotiable unless a spec explicitly changes them:
 - `ibgp-neighbor`
 - `vrf`
 - `vrf-interface`
+- `ebgp-neighbor` (after patch set v3)
+- `internet-interface` is modelled in YANG but has no callback or discovery code.
 
 ### CFS / cross-device discovery
 
 - `netinfra/router`
 - `netinfra/backbone-link`
+- `infra-internal/ibgp-fullmesh` (created by `netinfra/router` for core routers, not discovered directly)
 - `l3vpn/vpn`
+- `l3vpn/vrf-ebgp-customer` (after patch set v3)
+
+See [docs/framework/](../framework/README.md) for the full architecture and
+package reference.
 
 ## Known brownfield constraints
 
-- Full validation requires **NSO**, **Juniper Junos NED 4.16.x**, and **resource-manager 4.2.8**.
+- Full validation requires **NSO 6.6 or later** (6.7+ builds auto-apply `packages/*/nso-6.7.patch`), **Juniper Junos NED 4.16.x** (`juniper-junos-nc-4.16`), and **resource-manager 5.x**.
+- `find-services` commits with reconcile flags and without `no-networking`; it is read-safe only when the generated config already matches the device. Always dry-run first.
 - The repository currently depends on assets that cannot be assumed in GitHub-hosted CI or default Codespaces.
 - The root `Makefile` enforces NSO prerequisites before running the tutorial targets.
 

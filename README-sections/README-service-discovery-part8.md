@@ -25,3 +25,10 @@ Looking A-ok, let's do it
 ```
 make tutorial-sd-26-find-services-netinfra
 ```
+
+The discovered intent should match
+[cfs-example-custom.xml](../cfs-example-custom.xml), which contains the same
+routers and backbone links with the brownfield IDs, addresses and prefixes
+pinned in `custom`. The `custom/ipv6-address` values in that file are ignored
+by the router service. [cfs-example-clean.xml](../cfs-example-clean.xml) is
+the greenfield variant, where Resource Manager allocates the values.

@@ -32,7 +32,9 @@ service that covers the configurations, thus eliminating them from the diff.
 make tutorial-sd-15-load-leftover-serivce
 ```
 
-The package can be found in pathes/leftover-config
+The package can be found in [patches/leftover-config](../patches/leftover-config).
+It covers the `class-of-service` configuration found on CR-2 and only emits
+configuration for CR-2.
 
 **16. Find services in device CR-2, round 3**
 

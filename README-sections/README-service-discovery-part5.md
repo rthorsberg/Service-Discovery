@@ -47,6 +47,10 @@ Let's look at the changes in version 2.
 make tutorial-sd-20-git-diff-services
 ```
 
+On NSO 6.7 or later, this diff also contains the `nso-6.7.patch` changes
+(`tailf-ncs-commit-params` imports and `ncs-min-version` 6.7) that the build
+applied to the packages. Those are not part of version 2.
+
 **21. Build service**
 
 Build and reload our packages in NSO.

@@ -38,7 +38,7 @@ all:
 	@echo " start               	Start NSO and netsims. This is done automatically by the tutorial"
 	@echo " stop                	Stop NSO and netsims"
 	@echo " tutorial-sd-1-start  	Start the tutorial"
-	@echo " tutorial-sd-n-*     	Run the rest of the tutorial (n = 1..32)"
+	@echo " tutorial-sd-n-*     	Run the rest of the tutorial (n = 1..34)"
 .PHONY: all
 
 include tutorial.mk

@@ -7,6 +7,12 @@
     "docs/ai/service-glossary.md",
     "docs/ai/deviation-catalog.md",
     "docs/ai/acceptance-criteria-template.md",
+    "docs/framework/README.md",
+    "docs/framework/architecture.md",
+    "docs/framework/package-reference.md",
+    "docs/framework/walkthrough.md",
+    "docs/framework/limitations.md",
+    "docs/framework/provisioning-models.md",
     "specs/README.md",
     "specs/templates/brownfield-slice-spec.md",
     "specs/templates/brownfield-slice-checklist.md",
@@ -15,8 +21,24 @@
     ".github/workflows/brownfield-assets.yml",
     ".github/workflows/nso-brownfield-validation.yml",
     ".devcontainer/devcontainer.json",
-    "scripts/validate_brownfield_assets.py"
+    "scripts/validate_brownfield_assets.py",
+    "cfs-example-clean.xml",
+    "cfs-example-custom.xml",
+    "packages/multi-service-action/nso-6.7.patch",
+    "packages/netinfra/nso-6.7.patch",
+    "packages/netinfra-rfs/nso-6.7.patch",
+    "packages/respl3vpn/nso-6.7.patch"
   ],
+  "runtimeRequirements": {
+    "nsoMinVersion": "6.6",
+    "nsoVersionDependentPatch": {
+      "fromVersion": "6.7",
+      "marker": "tailf-ncs-commit-params",
+      "packages": ["multi-service-action", "netinfra", "netinfra-rfs", "respl3vpn"]
+    },
+    "resourceManager": "5.x",
+    "ned": "juniper-junos-nc-4.16"
+  },
   "fixtures": [
     {
       "name": "CR-1",
@@ -40,19 +62,19 @@
       "name": "ER-1",
       "path": "device-configs-brownfield/ER-1.xml",
       "role": "edge",
-      "serviceFamilies": ["base-config", "vrf", "vrf-interface", "mtu-variant"]
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor", "vrf", "vrf-interface", "mtu-variant"]
     },
     {
       "name": "ER-2",
       "path": "device-configs-brownfield/ER-2.xml",
       "role": "edge",
-      "serviceFamilies": ["base-config", "vrf", "vrf-interface"]
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor", "vrf", "vrf-interface", "mtu-variant"]
     },
     {
       "name": "ER-3",
       "path": "device-configs-brownfield/ER-3.xml",
       "role": "edge",
-      "serviceFamilies": ["base-config", "vrf", "vrf-interface", "drift-scenario"]
+      "serviceFamilies": ["base-config", "backbone-interface", "ibgp-neighbor", "vrf", "vrf-interface", "mtu-variant", "drift-scenario"]
     }
   ],
   "specs": [
