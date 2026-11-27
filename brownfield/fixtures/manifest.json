@@ -12,6 +12,7 @@
     "docs/framework/package-reference.md",
     "docs/framework/walkthrough.md",
     "docs/framework/limitations.md",
+    "docs/framework/provisioning-models.md",
     "specs/README.md",
     "specs/templates/brownfield-slice-spec.md",
     "specs/templates/brownfield-slice-checklist.md",

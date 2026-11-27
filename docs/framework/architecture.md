@@ -10,6 +10,8 @@ Related documents:
 - [Package reference](package-reference.md)
 - [End-to-end walkthrough](walkthrough.md)
 - [Limitations and assumptions](limitations.md)
+- [Provisioning models](provisioning-models.md): why discovery is the step from
+  imperative CLI config to declarative NSO services, and what intent-based adds
 
 ## The idea in one paragraph
 
