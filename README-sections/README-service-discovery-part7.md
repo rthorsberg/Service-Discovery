@@ -16,3 +16,12 @@ Proceed with ER-3, which again has no diff.
 ```
 make tutorial-sd-24-find-services-er-3
 ```
+
+## NOTE
+ER-2 and ER-3 also have `mtu 1600` on `eth3`; this is only covered because
+patch set v2 (step 19) is already applied. Unlike ER-1, the `eth4`
+vrf-interface service on ER-3 is created for the first time here, so the v2
+default `mtu 1500` is likely pushed to the device by the find-services commit.
+The original configuration is saved after find-services, so that change does
+not show up in the diff. See
+[limitations](../docs/framework/limitations.md#discovery-safety).

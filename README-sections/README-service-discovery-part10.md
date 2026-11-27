@@ -5,9 +5,14 @@ file.
 
 ## Overview
 
-This will do service discovery on device CR-3. The service(s) will fully 
-discovered and there is
-no difference in the configurion on the device and the configuration in NSO.
+This will introduce an out-of-band change on device ER-3 (a customer eBGP
+neighbor in VRF 10456) that no existing service type can represent. A new
+service type is added with patch set v3, after which the services on ER-3 are
+fully discovered again, including the new `ebgp-neighbor` RFS and the
+`l3vpn/vrf-ebgp-customer` CFS.
+
+Note that step 29 loads the change through NSO (`load merge` and commit), so
+it simulates an out-of-band change rather than editing the device directly.
 
 **29. Introduce some out-of-band changes in device ER-3**
 
